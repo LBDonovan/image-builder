@@ -657,7 +657,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 			apt-get update
 			apt-get -y \${apt_options} install ${deb_additional_pkgs}
 		fi
-
+		echo "~~~~ Installing Modules ~~~~"
 		if [ ! "x${repo_rcnee_pkg_version}" = "x" ] ; then
 			echo "Log: (chroot) Installing modules for: ${repo_rcnee_pkg_version}"
 			apt-get -y \${apt_options} install mt7601u-modules-${repo_rcnee_pkg_version} || true
@@ -668,6 +668,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 			depmod -a ${repo_rcnee_pkg_version}
 			update-initramfs -u -k ${repo_rcnee_pkg_version}
 		fi
+		echo "~~~~ Modules Installed ~~~~"
 
 		if [ "x${chroot_enable_debian_backports}" = "xenable" ] ; then
 			if [ ! "x${chroot_debian_backports_pkg_list}" = "x" ] ; then
@@ -675,11 +676,12 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 				sudo apt-get -y \${apt_options} -t ${deb_codename}-backports install ${chroot_debian_backports_pkg_list}
 			fi
 		fi
-
+		echo "~~~~ Installing repo_external_pkg_list $repo_external_pkg_list ~~~~"
 		if [ ! "x${repo_external_pkg_list}" = "x" ] ; then
 			echo "Log: (chroot) Installing (from external repo): ${repo_external_pkg_list}"
 			apt-get -y \${apt_options} install ${repo_external_pkg_list}
 		fi
+		echo "~~~~ done ~~~~"
 	}
 
 	system_tweaks () {
@@ -751,6 +753,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 
 	dl_kernel () {
 		echo "Log: (chroot): dl_kernel"
+		echo "~~~~ kernel_url: $kernel_url ~~~~"
 		wget --no-verbose --directory-prefix=/tmp/ \${kernel_url}
 
 		#This should create a list of files on the server
@@ -772,6 +775,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		echo "Log: Using: \${kernel_version}"
 
 		deb_file="linux-image-\${deb_file}.deb"
+		echo "~~~~ wget url: $kernel_url $deb_file ~~~~"
 		wget --directory-prefix=/tmp/ \${kernel_url}\${deb_file}
 
 		dpkg -x /tmp/\${deb_file} /
@@ -790,6 +794,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		source_file=\$(cat /tmp/index.html | grep .diff.gz | head -n 1)
 		source_file=\$(echo \${source_file} | awk -F "\"" '{print \$2}')
 
+		echo "~~~~ source_file: $source_file ~~~~"
 		if [ "\${source_file}" ] ; then
 			wget --directory-prefix=/opt/source/ \${kernel_url}\${source_file}
 		fi
@@ -927,7 +932,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 			systemctl enable generic-board-startup.service || true
 		fi
 
-		if [ -f /lib/systemd/system/capemgr.service ] ; then
+	if [ -f /lib/systemd/system/capemgr.service ] ; then
 			systemctl enable capemgr.service || true
 		fi
 
@@ -946,6 +951,17 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 			fi
 
 		fi
+	}
+
+	install_bela_kernel(){
+		echo "~~~~ install_bela_kernel ~~~~"
+		dpkg -i "/root/linux-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		echo "~~~~ firmware ~~~~"
+		dpkg -i "/root/linux-firmware-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		echo "~~~~ headers ~~~~"
+		dpkg -i "/root/linux-headers-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		echo "~~~~ depmod ~~~~"
+		depmod "4.4.59-ti-xenomai-r96" -a
 	}
 
 	systemd_tweaks () {
@@ -994,6 +1010,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 
 	install_pkg_updates
 	install_pkgs
+	install_bela_kernel
 	system_tweaks
 	set_locale
 	if [ "x${chroot_not_reliable_deborphan}" = "xenable" ] ; then
@@ -1011,6 +1028,8 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 	dpkg_check
 
 	if [ "x\${pkg_is_not_installed}" = "x" ] ; then
+		echo "~~~~ rfs_kernel loop ~~~~"
+		echo $rfs-kernel
 		if [ "${rfs_kernel}" ] ; then
 			for kernel_url in ${rfs_kernel} ; do dl_kernel ; done
 		fi
@@ -1063,6 +1082,13 @@ if [ "x${include_firmware}" = "xenable" ] ; then
 		sudo cp -v "${DIR}/git/linux-firmware/mt7601u.bin" "${tempdir}/lib/firmware/mt7601u.bin"
 	fi
 fi
+
+echo "~~~~ copying Bela kernel .deb files ~~~~"
+sudo mkdir -p "${tempdir}/root"
+sudo cp -v "${DIR}/target/kernel/linux-firmware-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-headers-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
+echo "~~~~ done ~~~~"
 
 if [ -n "${early_chroot_script}" -a -r "${DIR}/target/chroot/${early_chroot_script}" ] ; then
 	report_size

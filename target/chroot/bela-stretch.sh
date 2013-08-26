@@ -322,6 +322,31 @@ install_git_repos () {
 			fi
 		fi
 	fi
+
+	# Xenomai
+	git_repo="git://git.xenomai.org/xenomai-3.git"
+	git_target_dir="/opt/source/xenomai-3"
+	git_clone
+	echo "~~~~ xenomai cloned ~~~~"
+	if [ -f ${git_target_dir}/.git/config ] ; then
+		cd ${git_target_dir}/
+		echo "~~~~ Bootstrapping Xenomai ~~~~"
+		bash scripts/bootstrap
+		echo "~~~~ Configuring Xenomai ~~~~"
+		./configure CFLAGS="-march=armv7-a -mfpu=vfp3 -fno-pie -no-pie" LDFLAGS="-march=armv7-a -mfpu=vfp3 -fno-pie -no-pie" --disable-debug --with-core=cobalt --enable-pshared --build=arm
+		echo "~~~~ Building Xenomai ~~~~"
+		make
+		echo "~~~~ installing Xenomai ~~~~"
+		make install
+		echo "~~~~ Xenomai Done ~~~~"
+	fi
+
+	# Bela
+	echo "~~~~ Installing Bela ~~~~"
+	git_repo="https://github.com/BelaPlatform/Bela.git"
+	git_target_dir="/root/Bela"
+	git_clone
+	echo "~~~~ Bela Installed ~~~~"
 }
 
 install_build_pkgs () {
@@ -349,13 +374,13 @@ unsecure_root () {
 #	root_password=$(cat /etc/shadow | grep root | awk -F ':' '{print $2}')
 #	sed -i -e 's:'$root_password'::g' /etc/shadow
 
-#	if [ -f /etc/ssh/sshd_config ] ; then
-#		#Make ssh root@beaglebone work..
-#		sed -i -e 's:PermitEmptyPasswords no:PermitEmptyPasswords yes:g' /etc/ssh/sshd_config
-#		sed -i -e 's:UsePAM yes:UsePAM no:g' /etc/ssh/sshd_config
-#		#Starting with Jessie:
-#		sed -i -e 's:PermitRootLogin without-password:PermitRootLogin yes:g' /etc/ssh/sshd_config
-#	fi
+	if [ -f /etc/ssh/sshd_config ] ; then
+		#Make ssh root@beaglebone work..
+		sed -i -e 's:PermitEmptyPasswords no:PermitEmptyPasswords yes:g' /etc/ssh/sshd_config
+		sed -i -e 's:UsePAM yes:UsePAM no:g' /etc/ssh/sshd_config
+		#Starting with Jessie:
+		sed -i -e 's:PermitRootLogin without-password:PermitRootLogin yes:g' /etc/ssh/sshd_config
+	fi
 
 	if [ -d /etc/sudoers.d/ ] ; then
 		#Don't require password for sudo access
