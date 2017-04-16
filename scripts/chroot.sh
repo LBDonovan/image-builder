@@ -936,32 +936,54 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 			systemctl enable capemgr.service || true
 		fi
 
-		if [ ! "x${rfs_opt_scripts}" = "x" ] ; then
-			mkdir -p /opt/scripts/ || true
-
-			if [ -f /usr/bin/git ] ; then
-				qemu_command="git clone ${rfs_opt_scripts} /opt/scripts/ --depth 1"
-				qemu_warning
-				git clone -v ${rfs_opt_scripts} /opt/scripts/ --depth 1
-				sync
-				if [ -f /opt/scripts/.git/config ] ; then
-					echo "/opt/scripts/ : ${rfs_opt_scripts}" >> /opt/source/list.txt
-					chown -R ${rfs_username}:${rfs_username} /opt/scripts/
-				fi
-			fi
-
-		fi
+#		if [ ! "x${rfs_opt_scripts}" = "x" ] ; then
+#			mkdir -p /opt/scripts/ || true
+#
+#			if [ -f /usr/bin/git ] ; then
+#				qemu_command="git clone ${rfs_opt_scripts} /opt/scripts/ --depth 1"
+#				qemu_warning
+#				git clone -v ${rfs_opt_scripts} /opt/scripts/ --depth 1
+#				sync
+#				if [ -f /opt/scripts/.git/config ] ; then
+#					echo "/opt/scripts/ : ${rfs_opt_scripts}" >> /opt/source/list.txt
+#					chown -R ${rfs_username}:${rfs_username} /opt/scripts/
+#				fi
+#			fi
+#
+#		fi
 	}
 
 	install_bela_kernel(){
 		echo "~~~~ install_bela_kernel ~~~~"
-		dpkg -i "/root/linux-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		dpkg -i "/root/linux-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
+		rm -rf "/root/linux-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
 		echo "~~~~ firmware ~~~~"
-		dpkg -i "/root/linux-firmware-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		dpkg -i "/root/linux-firmware-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
+		rm -rf "/root/linux-firmware-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
 		echo "~~~~ headers ~~~~"
-		dpkg -i "/root/linux-headers-4.4.59-ti-xenomai-r96_1cross_armhf.deb"
+		dpkg -i "/root/linux-headers-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
+		rm -rf "/root/linux-headers-${BELA_KERNEL_VERSION}_1cross_armhf.deb"
+		echo "~~~~ libc ~~~~"
+		dpkg -i "/root/linux-libc-dev_1cross_armhf.deb"
+		rm -rf "/root/linux-libc-dev_1cross_armhf.deb"
 		echo "~~~~ depmod ~~~~"
-		depmod "4.4.59-ti-xenomai-r96" -a
+		depmod "${BELA_KERNEL_VERSION}" -a
+	}
+
+	install_bela(){
+		install_bela_kernel
+
+		cd "/root/Bela/"
+		make nostartup
+		make idestartup
+		cp -v "resources/am335x-bone-bela.dtb" "/boot/dtbs/${BELA_KERNEL_VERSION}/"
+		cp -v "resources/BELA-00A0.dtbo" "/lib/firmware/"
+		cp -v "resources/init_bela.service" "/etc/systemd/system/"
+		chmod +x "resources/init_bela.sh"
+		systemctl enable init_bela
+		mkdir -p /root/Bela/projects
+		cp -rv /root/Bela/IDE/templates/basic /root/Bela/projects
+
 	}
 
 	systemd_tweaks () {
@@ -1010,7 +1032,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 
 	install_pkg_updates
 	install_pkgs
-	install_bela_kernel
+	install_bela
 	system_tweaks
 	set_locale
 	if [ "x${chroot_not_reliable_deborphan}" = "xenable" ] ; then
@@ -1083,11 +1105,16 @@ if [ "x${include_firmware}" = "xenable" ] ; then
 	fi
 fi
 
-echo "~~~~ copying Bela kernel .deb files ~~~~"
+echo "~~~~ copying Bela files ~~~~"
 sudo mkdir -p "${tempdir}/root"
-sudo cp -v "${DIR}/target/kernel/linux-firmware-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
-sudo cp -v "${DIR}/target/kernel/linux-image-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
-sudo cp -v "${DIR}/target/kernel/linux-headers-4.4.59-ti-xenomai-r96_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-firmware-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-image-${BELA_KERNEL_VERSION}_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-headers-${BELA_KERNEL_VERSION}_1cross_armhf.deb" "${tempdir}/root/"
+sudo cp -v "${DIR}/target/kernel/linux-libc-dev_1cross_armhf.deb" "${tempdir}/root/"
+sudo mkdir -p "${tempdir}/opt/source/xenomai-3"
+sudo cp -r "${DIR}"/git/xenomai-3/* "${tempdir}/opt/source/xenomai-3"
+sudo cp -r "${DIR}/git/Bela" "${tempdir}/root/"
+sudo mkdir -p "${tempdir}/opt/scripts"
 echo "~~~~ done ~~~~"
 
 if [ -n "${early_chroot_script}" -a -r "${DIR}/target/chroot/${early_chroot_script}" ] ; then

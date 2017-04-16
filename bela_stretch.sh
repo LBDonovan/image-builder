@@ -68,3 +68,6 @@ blend="console"
 __EOF__
 
 chmod +x ${DIR}/deploy/gift_wrap_final_images.sh
+
+cd ${DIR}/deploy
+sudo ./gift_wrap_final_images.sh

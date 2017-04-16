@@ -225,24 +225,25 @@ install_git_repos () {
 		fi
 	fi
 
-	git_repo="https://github.com/prpplague/Userspace-Arduino"
-	git_target_dir="/opt/source/Userspace-Arduino"
-	git_clone
+	echo "|||| skipping userspace arduino etc ||||"
+	#git_repo="https://github.com/prpplague/Userspace-Arduino"
+	#git_target_dir="/opt/source/Userspace-Arduino"
+	#git_clone
 
-	git_repo="https://github.com/strahlex/BBIOConfig.git"
-	git_target_dir="/opt/source/BBIOConfig"
-	git_clone
+#	git_repo="https://github.com/strahlex/BBIOConfig.git"
+#	git_target_dir="/opt/source/BBIOConfig"
+#	git_clone
 
-	git_repo="https://github.com/prpplague/fb-test-app.git"
-	git_target_dir="/opt/source/fb-test-app"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/make ] ; then
-			make
-		fi
-		cd /
-	fi
+	#git_repo="https://github.com/prpplague/fb-test-app.git"
+	#git_target_dir="/opt/source/fb-test-app"
+	#git_clone
+	#if [ -f ${git_target_dir}/.git/config ] ; then
+	#	cd ${git_target_dir}/
+	#	if [ -f /usr/bin/make ] ; then
+	#		make
+	#	fi
+	#	cd /
+	#fi
 
 	#am335x-pru-package
 	if [ -f /usr/include/prussdrv.h ] ; then
@@ -258,19 +259,19 @@ install_git_repos () {
 		fi
 	fi
 
-	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
-	git_target_dir="/opt/source/dtb-4.4-ti"
-	git_branch="4.4-ti"
-	git_clone_branch
+#	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
+#	git_target_dir="/opt/source/dtb-4.4-ti"
+#	git_branch="4.4-ti"
+#	git_clone_branch
 
-	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
-	git_target_dir="/opt/source/dtb-4.9-ti"
-	git_branch="4.9-ti"
-	git_clone_branch
+#	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
+#	git_target_dir="/opt/source/dtb-4.9-ti"
+#	git_branch="4.9-ti"
+#	git_clone_branch
 
-	git_repo="https://github.com/beagleboard/bb.org-overlays"
+#	git_repo="https://github.com/beagleboard/bb.org-overlays"
 	git_target_dir="/opt/source/bb.org-overlays"
-	git_clone
+#	git_clone
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
 		if [ ! "x${repo_rcnee_pkg_version}" = "x" ] ; then
@@ -288,9 +289,9 @@ install_git_repos () {
 		fi
 	fi
 
-	git_repo="https://github.com/ungureanuvladvictor/BBBlfs"
+#	git_repo="https://github.com/ungureanuvladvictor/BBBlfs"
 	git_target_dir="/opt/source/BBBlfs"
-	git_clone
+#	git_clone
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
 		if [ -f /usr/bin/make ] ; then
@@ -300,35 +301,35 @@ install_git_repos () {
 		fi
 	fi
 
-	if [ ! -f /usr/lib/libroboticscape.so ] ; then
-		git_repo="https://github.com/StrawsonDesign/Robotics_Cape_Installer"
-		git_target_dir="/opt/source/Robotics_Cape_Installer"
-		git_clone
-	fi
+#	if [ ! -f /usr/lib/libroboticscape.so ] ; then
+#		git_repo="https://github.com/StrawsonDesign/Robotics_Cape_Installer"
+#		git_target_dir="/opt/source/Robotics_Cape_Installer"
+#		git_clone
+#	fi
 
 	#beagle-tester
-	git_repo="https://github.com/jadonk/beagle-tester"
-	git_target_dir="/opt/source/beagle-tester"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		if [ -f /usr/lib/libroboticscape.so ] ; then
-			cd ${git_target_dir}/
-			if [ -f /usr/bin/make ] ; then
-				make
-				make install || true
-#				if [ ! "x${image_type}" = "xtester-2gb" ] ; then
-#					systemctl disable beagle-tester.service || true
-#				fi
-			fi
-		fi
-	fi
+#	git_repo="https://github.com/jadonk/beagle-tester"
+#	git_target_dir="/opt/source/beagle-tester"
+#	git_clone
+#	if [ -f ${git_target_dir}/.git/config ] ; then
+#		if [ -f /usr/lib/libroboticscape.so ] ; then
+#			cd ${git_target_dir}/
+#			if [ -f /usr/bin/make ] ; then
+#				make
+#				make install || true
+##				if [ ! "x${image_type}" = "xtester-2gb" ] ; then
+##					systemctl disable beagle-tester.service || true
+##				fi
+#			fi
+#		fi
+#	fi
 
 	# Xenomai
-	git_repo="git://git.xenomai.org/xenomai-3.git"
+#	git_repo="git://git.xenomai.org/xenomai-3.git"
 	git_target_dir="/opt/source/xenomai-3"
-	git_clone
+#	git_clone
 	echo "~~~~ xenomai cloned ~~~~"
-	if [ -f ${git_target_dir}/.git/config ] ; then
+#	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
 		echo "~~~~ Bootstrapping Xenomai ~~~~"
 		bash scripts/bootstrap
@@ -339,14 +340,14 @@ install_git_repos () {
 		echo "~~~~ installing Xenomai ~~~~"
 		make install
 		echo "~~~~ Xenomai Done ~~~~"
-	fi
+#	fi
 
 	# Bela
-	echo "~~~~ Installing Bela ~~~~"
-	git_repo="https://github.com/BelaPlatform/Bela.git"
-	git_target_dir="/root/Bela"
-	git_clone
-	echo "~~~~ Bela Installed ~~~~"
+#	echo "~~~~ Installing Bela ~~~~"
+#	git_repo="https://github.com/BelaPlatform/Bela.git"
+#	git_target_dir="/root/Bela"
+#	git_clone
+#	echo "~~~~ Bela Installed ~~~~"
 }
 
 install_build_pkgs () {
@@ -371,8 +372,8 @@ other_source_links () {
 }
 
 unsecure_root () {
-#	root_password=$(cat /etc/shadow | grep root | awk -F ':' '{print $2}')
-#	sed -i -e 's:'$root_password'::g' /etc/shadow
+	root_password=$(cat /etc/shadow | grep root | awk -F ':' '{print $2}')
+	sed -i -e 's:'$root_password'::g' /etc/shadow
 
 	if [ -f /etc/ssh/sshd_config ] ; then
 		#Make ssh root@beaglebone work..

@@ -56,6 +56,28 @@ git_trees () {
 	git_clone_address="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git"
 	generic_git
 	update_git
+
+	git_project_name="xenomai-3"
+	git_clone_address="https://git.xenomai.org/xenomai-3.git"
+	generic_git
+	update_git
+
+	git_project_name="Bela"
+	git_clone_address="https://github.com/BelaPlatform/Bela.git"
+	if [ ! -f ${DIR}/git/${git_project_name}/.git/config ] ; then
+                git clone -b dev-kernel-4.4.y-xenomai-3-support ${git_clone_address} ${DIR}/git/${git_project_name}
+        fi
+	update_git
+
+	git_project_name="ti-linux-kernel-dev"
+	git_clone_address="https://github.com/RobertCNelson/ti-linux-kernel-dev.git"
+	if [ ! -f ${DIR}/git/${git_project_name}/.git/config ] ; then
+                git clone -b ti-linux-xenomai-4.4.y ${git_clone_address} ${DIR}/git/${git_project_name}
+        else
+		cd ${DIR}/git/${git_project_name}/
+		git checkout -- .
+	fi
+	update_git
 }
 
 run_roostock_ng () {
@@ -158,6 +180,20 @@ while [ ! -z "$1" ] ; do
 	esac
 	shift
 done
+
+echo "|||| Building Kernel ||||"
+cp -v ${DIR}/target/kernel/bela_defconfig ${DIR}/git/ti-linux-kernel-dev/patches/defconfig
+cd ${DIR}/git/ti-linux-kernel-dev/
+AUTO_BUILD=1
+export AUTO_BUILD
+./build_deb.sh
+rm -rf ${DIR}/target/kernel/*.deb
+cp -v ${DIR}/git/ti-linux-kernel-dev/deploy/*.deb ${DIR}/target/kernel/
+cp -v ${DIR}/git/ti-linux-kernel-dev/kernel_version ${DIR}/target/kernel/
+BELA_KERNEL_VERSION=`cat ${DIR}/target/kernel/kernel_version`
+export BELA_KERNEL_VERSION
+cd ${DIR}
+echo "|||| Building Filesystem ||||"
 
 run_roostock_ng
 
